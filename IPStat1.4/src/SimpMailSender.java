@@ -19,7 +19,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-
 public class SimpMailSender extends JApplet{
 	JTextField srvField;
 	JTextField fromField;
