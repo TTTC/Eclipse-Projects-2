@@ -118,6 +118,13 @@ public class SimpMailSender extends JFrame{
 				return;
 			}
 			
+			/* Empty text fields in this thread */
+			srvField.setText("");
+			toField.setText("");
+			fromField.setText("");
+			subjField.setText("");
+			msgArea.setText("");
+			
 		}
 		public void run() {
 			try {
@@ -126,7 +133,7 @@ public class SimpMailSender extends JFrame{
 				System.err.println("Error sending message." + e.getMessage());
 				return;
 			}
-			System.exit(0); //Closing when sent.
+			//System.exit(0); //Closing when sent.
 		}
 		
 	}
