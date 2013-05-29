@@ -2,9 +2,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Properties;
 
-import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -13,10 +17,7 @@ import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -50,7 +51,7 @@ public class SimpMailReceiver extends JFrame{
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 		
-		gbc.fill = gbc.BOTH;
+		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridheight = gbc.gridwidth = 1;
 		gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
 		this.add(srvLabel, gbc);
@@ -71,8 +72,8 @@ public class SimpMailReceiver extends JFrame{
 		this.add(new JScrollPane(msgArea), gbc);
 		gbc.gridx = 1; gbc.gridy = 4; gbc.weightx = 0; gbc.weighty = 0;
 		gbc.gridheight = gbc.gridwidth = 1;
-		gbc.anchor = gbc.LAST_LINE_END;
-		gbc.fill = gbc.NONE;
+		gbc.anchor = GridBagConstraints.LAST_LINE_END;
+		gbc.fill = GridBagConstraints.NONE;
 		this.add(fetchButton, gbc);
 				
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -93,16 +94,24 @@ public class SimpMailReceiver extends JFrame{
 			new Thread(this).start();
 		}
 		public void run() {
+			String srv = srvField.getText().trim();
+			String user = userField.getText().trim();
+			String passw = passwField.getText().trim();
+			
 			/* Establish connection and technicalities of email fetching... */
 			Properties prop = new Properties();
+			prop.setProperty("mail.pop3.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+	        prop.setProperty("mail.pop3.socketFactory.fallback", "false");
+	        prop.setProperty("mail.pop3.port",  "995");
+	        prop.setProperty("mail.pop3.socketFactory.port", "995");
 			
-			Session session = Session.getDefaultInstance(prop, new CustomMailAuthenticator(userField.getText().trim(), passwField.getText().trim()));
+			Session session = Session.getDefaultInstance(prop, new CustomMailAuthenticator(user, passw));
 			Store store = null;
 			Folder inbox = null;
 			Message[] emails = null;
 			try {
 				store = session.getStore("pop3");
-				store.connect(srvField.getText().trim(), userField.getText().trim(), passwField.getText().trim());
+				store.connect(srv, user, passw);
 				inbox = store.getFolder("INBOX");
 				if(inbox == null){
 					System.err.println("No inbox found.");
@@ -113,12 +122,22 @@ public class SimpMailReceiver extends JFrame{
 				
 				/* Write messages to JTextArea, separated by some dashes and an empty line in between. */
 				for(int i = 0; i < emails.length; i++){
-					msgArea.insert("---" + System.lineSeparator() + emails[i] + System.lineSeparator() + System.lineSeparator(), 0);
+					String emailText = "";
+					try {
+						emailText += "--- Message " + (i+1) + " ---" + System.lineSeparator();
+						emailText += "From: " + InternetAddress.toString(emails[i].getFrom()) + System.lineSeparator();
+						emailText += "Subject: " + emails[i].getSubject() + System.lineSeparator();
+						emailText += "Content: " + emails[i].getContent() + System.lineSeparator() + System.lineSeparator();
+					} catch (IOException e) {
+						emailText += "Content: Problem retreiving email." + System.lineSeparator() + System.lineSeparator();
+					}
+					msgArea.insert(emailText, 0);
 				}
 				
 				/* Let's end this... */
 				inbox.close(false);
 				store.close();
+				
 			} catch (NoSuchProviderException e) {
 				System.err.println("Unable to get store from POP3 provider.");
 				e.printStackTrace();
@@ -132,22 +151,22 @@ public class SimpMailReceiver extends JFrame{
 		
 	}
 	/**
-	 * Orifinally borrowed from n002213f of StackOverflow.
+	 * Originally borrowed from n002213f of StackOverflow.
 	 * @author simon
 	 *
 	 */
 	class CustomMailAuthenticator extends Authenticator {
 	     String user;
-	     String pw;
-	     public CustomMailAuthenticator (String user, String pw)
+	     String passw;
+	     public CustomMailAuthenticator (String user, String passw)
 	     {
 	        super();
 	        this.user = user;
-	        this.pw = pw;
+	        this.passw = passw;
 	     }
 	    public PasswordAuthentication getPasswordAuthentication()
 	    {
-	       return new PasswordAuthentication(user, pw);
+	       return new PasswordAuthentication(user, passw);
 	    }
 	}
 }
