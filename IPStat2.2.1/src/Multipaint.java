@@ -1,7 +1,6 @@
-import java.awt.BorderLayout;
+
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -22,12 +21,17 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+/**
+ * Sets up a frame in which the user can paint. The painting is also communicated to another, open Multipaint application. The constructor of this class expects information about the other application's hostname and port.
+ * @author simon
+ *
+ */
 public class Multipaint extends JFrame implements Runnable{
-	
+	private static final long serialVersionUID = 1L;
 	private DatagramSocket socket;
 	private Canvas canvas;
 	private Pencil pencil;
-	private JPanel toolbar;
+	//private JPanel toolbar;
 	private Set<PaintedPoint> paintedPoints;
 	
 	/**
@@ -122,7 +126,10 @@ public class Multipaint extends JFrame implements Runnable{
 	 *
 	 */
 	public class Canvas extends JPanel{
-		
+		private static final long serialVersionUID = 1L;
+		/**
+		 * Constructor. Sets up a white-background and listeners for this area. Also set up the HashSet which is supposed to hold all the points which are painted.
+		 */
 		public Canvas() {
 			paintedPoints = new HashSet<PaintedPoint>();
 			setBackground(Color.white);
@@ -175,13 +182,22 @@ public class Multipaint extends JFrame implements Runnable{
 				g.fillOval(p.x-size/2, p.y-size/2, size, size);
 			}
 		}
-		
+		/**
+		 * Class for listening after mouse-clicks by the user in the paint-able area.
+		 * @author simon
+		 *
+		 */
 		public class mouseClickListener extends MouseAdapter {
 			public void mousePressed(MouseEvent me) {
 				addPoint(me.getPoint(), pencil.getColour(), pencil.getSize());
 				sendPoint(me.getPoint());
 			}
 		}
+		/**
+		 * Class for listening after mouse-draggings, as in the user holding down AND moving the mouse, by the user in the paint-able area.
+		 * @author simon
+		 *
+		 */
 		public class mouseDraggedListener extends MouseMotionAdapter {
 			public void mouseDragged(MouseEvent me) {
 				addPoint(me.getPoint(), pencil.getColour(), pencil.getSize());

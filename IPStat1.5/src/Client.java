@@ -27,6 +27,10 @@ import javax.swing.JTextArea;
  *
  */
 public class Client extends JFrame implements Runnable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String host;
 	private String port;
 	private Socket chatSocket;
@@ -145,7 +149,7 @@ public class Client extends JFrame implements Runnable {
 	 */
 	private class SendButtonListener implements ActionListener {
 		/**
-		 * This method is called when the user clicks the send-button. Reads what is written in the text-area that the user can write in. If the user has written something it will send it to the sockets output-stream. Trailing white space will be removed, and if the user wrote only whitespaces, it will be ignored.
+		 * This method is called when the user clicks the send-button. Reads what is written in the text-area that the user can write in. If the user has written something it will send it to the sockets output-stream. Trailing white spaces will be removed, and if the user wrote only whitespaces, nothing will happen.
 		 */
 		public void actionPerformed(ActionEvent ae){
 			String message = enterTextArea.getText().trim();

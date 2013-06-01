@@ -27,6 +27,10 @@ import javax.swing.JTextArea;
  *
  */
 public class Client extends JFrame implements Runnable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String host;
 	private String port;
 	private Socket chatSocket;

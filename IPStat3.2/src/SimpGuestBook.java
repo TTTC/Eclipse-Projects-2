@@ -19,15 +19,18 @@ import javax.swing.JTextField;
 
 
 public class SimpGuestBook extends JFrame {
-	JTextField nameField;
-	JTextField emailField;
-	JTextField websiteField;
-	JTextArea messageArea;
+	private static final long serialVersionUID = 1L;
+	private JTextField nameField;
+	private JTextField emailField;
+	private JTextField websiteField;
+	private JTextArea messageArea;
 	
 	public static void main(String[] args){
 		new SimpGuestBook();
 	}
-	
+	/**
+	 * Constructor. 
+	 */
 	public SimpGuestBook(){
 		super("SimpGuestBook");
 		

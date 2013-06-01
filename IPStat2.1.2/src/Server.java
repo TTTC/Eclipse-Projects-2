@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -22,6 +23,10 @@ import javax.swing.JTextArea;
  *
  */
 public class Server extends JFrame implements Runnable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String port;
 	private ServerSocket serverSocket;
 	
@@ -45,7 +50,8 @@ public class Server extends JFrame implements Runnable {
 		try {
 			serverSocket = new ServerSocket(Integer.parseInt(port));
 			clients = new HashSet<ClientHandler>();
-			this.setTitle("Host: " + serverSocket.getInetAddress().getLocalHost().getHostName() + " Port: " + port + " Clients: " + clients.size());
+			serverSocket.getInetAddress();
+			this.setTitle("Host: " + InetAddress.getLocalHost().getHostName() + " Port: " + port + " Clients: " + clients.size());
 		} 
 		catch (UnknownHostException e) {
 			System.err.println("Unable to create server socket");
@@ -84,7 +90,8 @@ public class Server extends JFrame implements Runnable {
 	synchronized private void removeClient(ClientHandler clientHandler) {
 		clients.remove(clientHandler);
 		try {
-			this.setTitle("Host: " + serverSocket.getInetAddress().getLocalHost().getHostName() + " Port: " + port + " Clients: " + clients.size());
+			serverSocket.getInetAddress();
+			this.setTitle("Host: " + InetAddress.getLocalHost().getHostName() + " Port: " + port + " Clients: " + clients.size());
 		} catch (UnknownHostException e) { 
 			System.err.println("Problem getting host name");
 			System.exit(22);
@@ -114,7 +121,8 @@ public class Server extends JFrame implements Runnable {
 				Socket clientSocket = serverSocket.accept();
 				ClientHandler clientHandler = new ClientHandler(clientSocket);
 				clients.add(clientHandler);
-				this.setTitle("Host: " + serverSocket.getInetAddress().getLocalHost().getHostName() + " Port: " + port + " Clients: " + clients.size());
+				serverSocket.getInetAddress();
+				this.setTitle("Host: " + InetAddress.getLocalHost().getHostName() + " Port: " + port + " Clients: " + clients.size());
 				textDisplayArea.append("CLIENT CONNECTED: " + clientSocket.getInetAddress().getHostName() + System.lineSeparator());
 				textDisplayArea.setCaretPosition(textDisplayArea.getDocument().getLength());
 				new Thread(clientHandler).start();
@@ -133,6 +141,10 @@ public class Server extends JFrame implements Runnable {
 		private BufferedReader clin;
 		private PrintWriter clout;
 		
+		/**
+		 * Constructor. Sets up the socket this ClientHandler is supposed to handle, and the streams, and their encoding, involved.
+		 * @param clientSocket the socket of the connection between this server and a client that is produced when accepting a request to connect to this server.
+		 */
 		private ClientHandler(Socket clientSocket) {
 			this.clientSocket = clientSocket;
 			try {
@@ -142,7 +154,9 @@ public class Server extends JFrame implements Runnable {
 			} catch (IOException e) {
 			}
 		}
-		
+		/**
+		 * Properly closes the socket and its streams.
+		 */
 		private void closeConnection() {
 			try {
 				clout.close();
@@ -150,7 +164,10 @@ public class Server extends JFrame implements Runnable {
 				clientSocket.close();
 			} catch (IOException e) { }
 		}
-		
+		/**
+		 * Sends a message to the client this class' socket is connected to.
+		 * @param message
+		 */
 		private void sendMessage(String message) {
 			clout.println(message);
 		}

@@ -1,6 +1,6 @@
 /**
- * Class that starts a new thread where-in it continually prints <code>Tråd T2: Tråd threadId</code> to <code>system.out</code> every second. The thread can be stopped, paused and unpaused. Implements {@link Runnable} interface.
- * @author Simon Wallgren Ahlström
+ * Class that starts a new thread where-in it continually prints <code>TrÃ¥d T2: TrÃ¥d threadId</code> to <code>system.out</code> every second. The thread can be stopped, paused and unpaused. Implements {@link Runnable} interface.
+ * @author Simon Wallgren AhlstrÃ¶m
  * @version 1.0
  */
 public class T2 implements Runnable{
@@ -16,13 +16,13 @@ public class T2 implements Runnable{
 		this.threadId = threadId;
 	}
 	/**
-	 * Prints <code>Tråd T2: Tråd threadId</code> to <code>system.out</code> every second, if the thread has not been stopped or paused.
+	 * Prints <code>TrÃ¥d T2: TrÃ¥d threadId</code> to <code>system.out</code> every second, if the thread has not been stopped or paused.
 	 */
 	public void run() {
 		alive = active = true;
 		while(alive) {
 			while(active) {
-				System.out.println("Tråd T2: Tråd " + threadId);
+				System.out.println("TrÃ¥d T2: TrÃ¥d " + threadId);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) { }

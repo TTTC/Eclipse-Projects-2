@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.JApplet;
-import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -23,6 +22,8 @@ import javax.swing.JTextArea;
  *
  */
 public class Server extends JApplet implements Runnable {
+	
+	private static final long serialVersionUID = 1L;
 	private String port;
 	private ServerSocket serverSocket;
 	

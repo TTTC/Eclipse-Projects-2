@@ -1,6 +1,3 @@
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -17,8 +14,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class SimpWebBrowser extends JFrame{
-	JTextArea textDisplayArea;
-	JTextField addressBar;
+	private static final long serialVersionUID = 1L;
+	private JTextArea textDisplayArea;
+	private JTextField addressBar;
 	
 	public SimpWebBrowser() {
 		
@@ -26,12 +24,12 @@ public class SimpWebBrowser extends JFrame{
 		super("SimpWebBrowser");
 		
 		
-		addressBar = new JTextField(Integer.MAX_VALUE);
-		addressBar.setMaximumSize(addressBar.getPreferredSize());
-		addressBar.addActionListener(new AddressBarListener());
+		this.addressBar = new JTextField(Integer.MAX_VALUE);
+		this.addressBar.setMaximumSize(addressBar.getPreferredSize());
+		this.addressBar.addActionListener(new AddressBarListener());
 		
-		textDisplayArea = new JTextArea();
-		textDisplayArea.setEditable(false);
+		this.textDisplayArea = new JTextArea();
+		this.textDisplayArea.setEditable(false);
 		
 		this.getContentPane().setLayout(new BoxLayout(this.getContentPane(),BoxLayout.Y_AXIS));
 		this.setSize(800,600);
@@ -45,11 +43,18 @@ public class SimpWebBrowser extends JFrame{
 		new SimpWebBrowser();
 	}
 	
+	/**
+	 * Class listening for the enter-key on the user's keyboard. If user has focus on the JTextField, and presses enter {@link this#actionPerformed(ActionEvent)}.
+	 * @author simon
+	 *
+	 */
 	class AddressBarListener implements ActionListener, Runnable{
 		public void actionPerformed(ActionEvent arg0) {
 			new Thread(this).start();
 		}
-
+		/**
+		 * Reads the document and prints it to the text area in SimpWebBrowser that this listener is connected to. Runs in its own thread to avoid the "locking out" interaction from the user while the document is read.
+		 */
 		synchronized public void run() {
 			URL url = null;
 			BufferedReader reader = null;

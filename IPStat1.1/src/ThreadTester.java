@@ -1,4 +1,8 @@
-
+/**
+ * Main class for the demonstration of classes T1 and T2
+ * @author simon
+ *
+ */
 public class ThreadTester extends Thread{
 	public static void main(String[] args) throws InterruptedException{
 		int threadId = 1;
