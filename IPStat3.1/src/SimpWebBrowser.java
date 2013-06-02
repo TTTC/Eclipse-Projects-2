@@ -12,12 +12,16 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-
+/**
+ * Class for downloading and viewing HTML-documents. Has a quite minimalist GUI - just a text field to enter the adress, and a text field to view the document - no button. The HTML-code is not really processed, but just presented as text.
+ */
 public class SimpWebBrowser extends JFrame{
 	private static final long serialVersionUID = 1L;
 	private JTextArea textDisplayArea;
 	private JTextField addressBar;
-	
+	/**
+	 * Constructor. Sets up the two fields in the application, as well as the listener for the enter button.
+	 */
 	public SimpWebBrowser() {
 		
 		/* Establish GUI */

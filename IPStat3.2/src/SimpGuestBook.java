@@ -17,7 +17,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-
+/**
+ * Class for posting comments in a guestbook-database. Posts them in the database located at atlas.dsv.su.se on the account of the author of this application. The user can supply at most 255 characters as a message, and 50 characters for the other fields. This application expects the drivers com.mysql.jdbc.Driver to be available.
+ * @author simon
+ *
+ */
 public class SimpGuestBook extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JTextField nameField;
@@ -29,7 +33,7 @@ public class SimpGuestBook extends JFrame {
 		new SimpGuestBook();
 	}
 	/**
-	 * Constructor. 
+	 * Constructor. Sets up the GUI - fields, buttons and listeners.
 	 */
 	public SimpGuestBook(){
 		super("SimpGuestBook");
@@ -81,11 +85,18 @@ public class SimpGuestBook extends JFrame {
 		
 		this.setVisible(true);
 	}
-	
+	/**
+	 * Class for listening to the send-button of the {@link SimpGuestBook} application. When pressed, starts a new thread where the actual attempt to post the comment will be made. 
+	 * @author simon
+	 * @see #run()
+	 */
 	private class SendButtonListener implements ActionListener, Runnable {
 		public void actionPerformed(ActionEvent e) {
 			new Thread(this).start();
 		}
+		/**
+		 * Attempts to upload a comment to the database. If the user has left a field empty, it will do nothing. If a user has supplied HTML-code in any field, that code will be replaced by <Censur>. Also, if the user has written a message longer than 255 characters, or text longer than 50 characters in the other fields, the method will do nothing. This method also expects that the required drivers, com.mysql.jdbc.Driver, are present.
+		 */
 		public void run(){
 			String nameText = nameField.getText().trim();
 			String emailText = emailField.getText().trim();
@@ -97,19 +108,18 @@ public class SimpGuestBook extends JFrame {
 			|| websiteText.equals("")
 			|| messageText.equals(""))
 				return;
-			//Checks for HTML-code, not so thoroughly.
-			Pattern p = Pattern.compile("<.*>");
-			if(p.matcher(nameText).matches()
-			|| p.matcher(emailText).matches()
-			|| p.matcher(websiteText).matches()
-			|| p.matcher(messageText).matches())
-				return;
 			//I was too lazy to make an elaborated way of handling maximum character limit.
 			if(nameText.length() > 50
 			|| emailText.length() > 50
 			|| websiteText.length() > 50
 			|| messageText.length() > 255)
 				return;
+			//Checks for HTML-code, not so thoroughly.
+			Pattern p = Pattern.compile("<.*>");
+			p.matcher(nameText).replaceAll("<Censur>");
+			p.matcher(emailText).replaceAll("<Censur>");
+			p.matcher(websiteText).replaceAll("<Censur>");
+			p.matcher(messageText).replaceAll("<Censur>");
 			
 			/* Connect to database */
 			Connection dbConnection = null;

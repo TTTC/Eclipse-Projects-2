@@ -2,11 +2,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -25,13 +21,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-
+/**
+ * Class for receiving emails. Follows the POP3 protocol, or rather uses the JavaMail with POP3 properties.
+ * @author simon
+ *
+ */
 public class SimpMailReceiver extends JFrame{
-	JTextField srvField;
-	JTextField userField;
-	JTextField passwField;
-	JTextArea msgArea;
-	
+	private static final long serialVersionUID = 1L;
+	private JTextField srvField;
+	private JTextField userField;
+	private JTextField passwField;
+	private JTextArea msgArea;
+	/**
+	 * Constructor. Sets up the GUI.
+	 */
 	public SimpMailReceiver(){
 		super("SimpMailSender");
 		
@@ -40,11 +43,11 @@ public class SimpMailReceiver extends JFrame{
 		JLabel passwLabel = new JLabel("Password: ");
 		JLabel msgLabel = new JLabel("Messages: ");
 		
-		srvField = new JTextField();
-		userField = new JTextField();
-		passwField = new JTextField();
-		msgArea = new JTextArea();
-		msgArea.setEditable(false);
+		this.srvField = new JTextField();
+		this.userField = new JTextField();
+		this.passwField = new JTextField();
+		this.msgArea = new JTextArea();
+		this.msgArea.setEditable(false);
 		
 		JButton fetchButton = new JButton("Fetch");
 		fetchButton.addActionListener(new SendButtonListener());
@@ -84,6 +87,11 @@ public class SimpMailReceiver extends JFrame{
 	public static void main(String[] args){
 		new SimpMailReceiver();
 	}
+	/**
+	 * Class for listeing on the send-button in the {@link SimpMailReceiver}-application. When the button is pressed, it starts a new thread wherein the emails are retreived.
+	 * @author simon
+	 *
+	 */
 	public class SendButtonListener implements ActionListener, Runnable{
 		public void actionPerformed(ActionEvent e) {
 			if(srvField.getText().trim().equals("")
@@ -93,6 +101,9 @@ public class SimpMailReceiver extends JFrame{
 			
 			new Thread(this).start();
 		}
+		/**
+		 * Called when the send-button is pressed. Attempts to retreive the emails on the mail-server supplied by the user, on the account supplied by the user. If the information given leads to no emails, or if the user has not supplied any information, nothing will be presented. Follows POP3 protocl. Retreival will get quite slow, because of technicalities regarding the subjects of the emails, where the application will have to retreive them again and again for each email, I couldn't work out a nice way around this. This method runs in its own thread.
+		 */
 		public void run() {
 			String srv = srvField.getText().trim();
 			String user = userField.getText().trim();
@@ -151,7 +162,7 @@ public class SimpMailReceiver extends JFrame{
 		
 	}
 	/**
-	 * Originally borrowed from n002213f of StackOverflow.
+	 * Originally borrowed from n002213f of StackOverflow. A custom class for authentication. Used when retreiving the emails as part of the authentication.
 	 * @author simon
 	 *
 	 */

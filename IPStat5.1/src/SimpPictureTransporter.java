@@ -1,18 +1,12 @@
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -26,14 +20,24 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-
+/**
+ * Class for sending images to another application over the ,.-+*INTERNET*+-.,. . Images are supposed to be sent to and received from other SimpPictureTransporter-applications. This application continously listens for messages, and accepts them and attempts to retreive them and save them as images (which I assume may have some funny and tragic results). It also allows the user to specify a hostname and port, and a path to a file, which is to be sent.
+ * @author simon
+ *
+ */
 public class SimpPictureTransporter extends JFrame implements Runnable {
-	ServerSocket serverSocket;
-	JTextField sendHost;
-	JTextField sendPort;
-	JTextField sendPicture;
-	JTextArea log;//Displays information about pictures received and sent.
+
+	private static final long serialVersionUID = 1L;
+	private ServerSocket serverSocket;
+	private JTextField sendHost;
+	private JTextField sendPort;
+	private JTextField sendPicture;
+	private JTextArea log;//Displays information about pictures received and sent.
 	
+	/**
+	 * Sets up the GUI. It also sets up the continous listening for messages to this application. The port listened to should be supplied as parameter. If this port is occupied, the application is ended. If the port is available, the application will start up and the user may interact with it. 
+	 * @param listenPort the port to listen to. Default 5130 if user did not supply anything else when running the application.
+	 */
 	public SimpPictureTransporter(int listenPort){
 		/* Start server socket */
 		try {
@@ -96,7 +100,11 @@ public class SimpPictureTransporter extends JFrame implements Runnable {
 		/* Start listening for requests */
 		new Thread(this).start();
 	}
-	
+	/**
+	 * Class for listening to the send-button in {@link SimpPictureTransporter}. When pressed, a new thread is created where an image is attempted to be sent.
+	 * @author simon
+	 *
+	 */
 	public class SendButtonListener implements ActionListener, Runnable{
 		public void actionPerformed(ActionEvent e) {
 			if(sendHost.getText().trim().equals("")
@@ -106,23 +114,10 @@ public class SimpPictureTransporter extends JFrame implements Runnable {
 			
 			new Thread(this).start();
 		}
-
+		/**
+		 * Attempts to send a picture by the information give by the user. If the image does not exist, will do nothing. The receiver has to accept the request to send first, and probably won't unless sending to another {@link SimpPictureTransporter}-application.
+		 */
 		public void run() {
-			/* Etablish connection */
-			Socket socket = null;
-			try {
-				socket = new Socket(sendHost.getText().trim(), Integer.parseInt(sendPort.getText().trim()));
-				
-			} catch (NumberFormatException e) {
-				return; //If user inputs non-number as port.
-			} catch (UnknownHostException e) {
-				synchedLogPrintln("Unable to send picture; unable to connect with receiver.");
-				return;
-			} catch (IOException e) {
-				synchedLogPrintln("Unable to send picture; unable to connect with receiver.");
-				return;
-			}
-			
 			/* Read the image */
 			BufferedImage img = null;
 			File file = null;
@@ -135,11 +130,20 @@ public class SimpPictureTransporter extends JFrame implements Runnable {
 			}
 			if(img == null){
 				synchedLogPrintln("Unable to load image. Check path.");
-				try {
-					socket.close();
-				} catch (IOException e) {
-					//Do nothing
-				}
+				return;
+			}
+			/* Etablish connection */
+			Socket socket = null;
+			try {
+				socket = new Socket(sendHost.getText().trim(), Integer.parseInt(sendPort.getText().trim()));
+				
+			} catch (NumberFormatException e) {
+				return; //If user inputs non-number as port.
+			} catch (UnknownHostException e) {
+				synchedLogPrintln("Unable to send picture; unable to connect with receiver.");
+				return;
+			} catch (IOException e) {
+				synchedLogPrintln("Unable to send picture; unable to connect with receiver.");
 				return;
 			}
 			/* Send image to socket */
@@ -164,7 +168,9 @@ public class SimpPictureTransporter extends JFrame implements Runnable {
 		}
 		
 	}
-	
+	/**
+	 * Continously listens for images sent to the port listened to, which is supplied when starting the application as an argument. When accepting a sent image, it will be saved in the same folder as this application is located or running from. The image is saved under the name "IMGx.png" where x is first available number, starting from 1.
+	 */
 	public void run() {
 		Socket socket = null;
 		InputStream in = null;
@@ -186,14 +192,20 @@ public class SimpPictureTransporter extends JFrame implements Runnable {
 		}
 		
 	}
-	
+	/**
+	 * Prints a message to the log in {@link SimpPictureTransporter}. This method takes care of all the delimiting from other messages by beginning each message with "##", and ending it with a line-break. It also makes sure that the log is scrolled down to view the new message.
+	 * @param msg the message that is to be printed. Expected to be the message only, and no delimiting text.
+	 */
 	synchronized public void synchedLogPrintln(String msg){
 		log.append("## "); //Shows where a new message begins
 		log.append(msg);
 		log.append(System.lineSeparator());
 		log.setCaretPosition(log.getDocument().getLength());
 	}
-	
+	/**
+	 * Expects a port as argument to be used to listen to when running the application. If no port is given, default is 5130.
+	 * @param args
+	 */
 	public static void main(String[] args){
 		int listenPort = 5130; //Check what might use this port.
 		if(args.length == 1)
