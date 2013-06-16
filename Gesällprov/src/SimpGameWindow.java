@@ -6,6 +6,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Polygon;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -20,11 +22,16 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-
+/**
+ * The class that is supposed to handle the display, and a lot of the game-calculations of the mechanics in the game. It also handles the log, and the printing of messages to it. This is the class that contains the game loop ({@link #run()}). Basically, this class contains the stuff that the game server and game client have in common. The game client or server is supposed to create an objet of this class and communicate with this object to handle the game (using methods such as {@link #applyCommand(String)}, {@link #printToLog(String)} or {@link #addEntity(String)}.
+ * @author simon
+ *
+ */
 public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 	private static final long serialVersionUID = 1L;//Default auto-generated
 	
@@ -32,7 +39,10 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 	private ConcurrentHashMap<String, Tank> playerTanks; //Keeps track of player's tanks
 	private Set<SimpGameEntity> entities; //Keeps track of all other entities (including player projectiles)
 
+	
 	private JTextArea log;
+	private JTextArea chatInputArea;
+	private JButton chatSendButton;
 	
 	private int player; //This player
 	private int weapon; //Weapon for this player
@@ -73,11 +83,32 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 		this.log.setLineWrap(true);
 		this.log.setWrapStyleWord(true);
 		this.log.setEditable(false);
+		this.chatInputArea = new JTextArea();
+		this.chatInputArea.setSize(300,1); 
+		this.chatInputArea.setLineWrap(true);
+		this.chatInputArea.setWrapStyleWord(true);
+		this.chatInputArea.setEditable(true);
+		this.chatInputArea.setEnabled(false);
+		this.chatSendButton = new JButton("Send");
+		this.chatSendButton.addActionListener(new ChatSendButtonListener());
+		this.chatSendButton.setEnabled(false);
+		
+		JPanel chatLogPanel = new JPanel();
+		chatLogPanel.setLayout(new GridBagLayout());
+		gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1; gbc.weighty = 0.75;
+		gbc.gridheight = 1; gbc.gridwidth = 1;
+		gbc.fill = GridBagConstraints.BOTH;
+		chatLogPanel.add(new JScrollPane(this.log), gbc);
+		gbc.gridy = 1; gbc.weighty = 0.25;
+		chatLogPanel.add(new JScrollPane(this.chatInputArea), gbc);
+		gbc.gridy = 2; gbc.weighty = 0;
+		gbc.fill = GridBagConstraints.NONE;
+		chatLogPanel.add(this.chatSendButton, gbc);
 		
 		gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1; gbc.weighty = 1;
 		gbc.gridheight = gbc.gridwidth = 0;
 		gbc.fill = GridBagConstraints.BOTH;
-		this.add(new JScrollPane(log), gbc);
+		this.add(chatLogPanel, gbc);
 		//this.setSize(1800, 600);
 
 
@@ -194,8 +225,8 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 	}
 	
 	/**
-	 * TODO
-	 * @param cmd
+	 * This method is responsible for taking a message (or command rather), probably received from the server, and turn that message into the corresponding actions in the game. This method is the way that the game lient or server communicates with the actual game and its mechanics and graphics. The messages' always begin with a letter indicating what action to do, such as making a tank move ("M"), rotate ("R"), or fire a special weapon from the tank ("A"), or handle a collision ("H"), add ("N") or remove ("D") a player from the game, or start the respawning of a dead player ("RS"). In its current state, the method will assume that the correct number of arguments will follow the letter, and if it doesn't, some index-out-of-bounds exception will probably be thrown.
+	 * @param cmd the command, as a string, that is supposed to be executed and "put into" the game.
 	 */
 	public void applyCommand(String cmd){
 		String[] data = cmd.split(" ");
@@ -299,11 +330,20 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 				new Thread(new RespawnHandler(cmd)).start();
 				break;
 		}
+		//CM, chat messages, are handled differently since they use the asterixes to delimit the values.
+		data = cmd.split("\\*");
+		if(data[0].equals("CM")) {
+			//Is chat message
+			String msg = cmd.substring(cmd.indexOf("*")+1);
+			msg = msg.substring(msg.indexOf("*")+1);
+			this.printToLog(data[1], msg);
+		}
 	}
 	/**
-	 * TODO
+	 * The game loop. This is perhaps were most of the game mechanics is handled, such as collition detection, movement is actually done, expired projectiles are removed, the graphics is painted, and so on. The loop is done as long as the boolean {@link #isRunning} is true.
 	 */
 	public void run(){
+		this.chatInputArea.setEnabled(true); this.chatSendButton.setEnabled(true);
 		int lastMovementSent = 0, lastRotatementSent = 0;
 		/* ,.-*'/// The Game loop \\\'*-., */
 		while(isRunning){
@@ -311,7 +351,7 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 			/* Mechanics */
 			
 			//Add items
-			//TODO Better way of adding items
+			//This is very clumsy...
 			if(player == -1){
 				Random randItem = new Random();
 				if(randItem.nextInt(1000) == 1){
@@ -476,10 +516,20 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 	/**
 	 * Takes a message and prints it in the log. The message is supposed to be quite bare, and only contain the actual message, and not contain any formating, not contain any information ABOUT the message. This method will add time and ">>" before any message, and line-separators after it to separate each message.
 	 * @param msg The message to be displayed in the log.
+	 * @see #printToLog(String, String)
 	 */
-	synchronized public void printToLog(String msg){
+	synchronized public void printToLog(String msg) {
+		this.printToLog("", msg);
+	}
+	/**
+	 * Takes a message and prints it in the log, with the given player's name coming between the time and the ">>". This method is supposed to be used when printing some chat message a player sent.
+	 * @param playerName
+	 * @param msg
+	 * @see #printToLog(String)
+	 */
+	synchronized public void printToLog(String playerName, String msg){
 		String currTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
-		log.append(currTime + ">> " + msg + System.lineSeparator());
+		log.append(currTime + " " + playerName + " >> " + msg + System.lineSeparator());
 		log.setCaretPosition(log.getDocument().getLength());
 	}
 	
@@ -493,6 +543,26 @@ public class SimpGameWindow extends JPanel/*JFrame*/ implements Runnable {
 	
 	public int getPlayerNumber(){
 		return this.player;
+	}
+	
+	public class ChatSendButtonListener implements ActionListener{
+		public void actionPerformed(ActionEvent e) {
+			String msg = chatInputArea.getText().trim();
+			if(msg.equals(""))
+				return;
+			if(player == -1) {
+				/* This is server - send the message to all players */
+				((SimpGameServer)getTopLevelAncestor()).sendCommand("CM*SERVER*" + msg);
+				printToLog("SERVER", msg);
+			}
+			else {
+				/* This is client - send message to server */
+				SimpGame sg = (SimpGame)getTopLevelAncestor();
+				sg.sendMessage("CM*" + sg.getPlayerName() + "*" + msg);
+			}
+			chatInputArea.setText("");
+		}
+		
 	}
 	
 	/**

@@ -27,6 +27,8 @@ import javax.swing.JTextField;
 public class SimpGame extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;//Default auto-generated
 	
+	private String playerName;
+	
 	private String host;
 	private int port;
 	
@@ -55,18 +57,19 @@ public class SimpGame extends JFrame implements Runnable {
 		JLabel hostLabel = new JLabel("Host: ");
 		JLabel portLabel = new JLabel("Port: ");
 		
-		nameField = new JTextField("Player");
-		hostField = new JTextField();
-		portField = new JTextField();
+		this.playerName = "Player"; //Default name
+		this.nameField = new JTextField("Player");
+		this.hostField = new JTextField();
+		this.portField = new JTextField();
 		
-		connectButton = new JButton("Connect");
-		disconnectButton = new JButton("Disconnect");
-		disconnectButton.setEnabled(false);
-		aboutButton = new JButton("About");
+		this.connectButton = new JButton("Connect");
+		this.disconnectButton = new JButton("Disconnect");
+		this.disconnectButton.setEnabled(false);
+		this.aboutButton = new JButton("About");
 		
-		connectButton.addActionListener(new StartButtonListener(this));
-		disconnectButton.addActionListener(new StopButtonListener(this));
-		aboutButton.addActionListener(new AboutButtonListener(this));
+		this.connectButton.addActionListener(new StartButtonListener(this));
+		this.disconnectButton.addActionListener(new StopButtonListener(this));
+		this.aboutButton.addActionListener(new AboutButtonListener(this));
 		
 		this.setLayout(new BorderLayout());
 		
@@ -122,7 +125,9 @@ public class SimpGame extends JFrame implements Runnable {
 			}
 		});
 	}
-	
+	public String getPlayerName() {
+		return this.playerName;
+	}
 	public String getHost(){
 		return this.host;
 	}
@@ -182,8 +187,9 @@ public class SimpGame extends JFrame implements Runnable {
 			 * to avoid out-of-sync-problems.
 			 * Attack:		"A player weapon info" weapon = 0-9, info = x, y, angle, etc, depending on weapon
 			 * New entity:	"N entity-info"
+			 * Chat msg:	"CM*playername*message"
 			 */
-			if(msg.matches("((M|R) \\d+ (1|2|0 -?\\d+.\\d+ -?\\d+.\\d+ -?\\d+))|(A .*)|(N .+)|(D \\d+)|(H \\d+ \\d+)|(RS \\d+ -?\\d+ -?\\d+ -?\\d+)")){
+			if(msg.matches("((M|R) \\d+ (1|2|0 -?\\d+.\\d+ -?\\d+.\\d+ -?\\d+))|(A .*)|(N .+)|(D \\d+)|(H \\d+ \\d+)|(RS \\d+ -?\\d+ -?\\d+ -?\\d+)|(CM\\*.+\\*.+)")){
 				gameWindow.applyCommand(msg);
 			}
 			else if(msg.matches("DD")){

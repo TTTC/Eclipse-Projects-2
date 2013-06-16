@@ -114,8 +114,10 @@ public class SimpGameServer extends JFrame implements Runnable {
 		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
-				sendCommand("DD");
-				stopServer();
+				if(isRunning) {
+					sendCommand("DD");
+					stopServer();
+				}
 				System.exit(0);
 			}
 		});
@@ -155,6 +157,7 @@ public class SimpGameServer extends JFrame implements Runnable {
 			 * Move:		"M player direction" direction = 0(stop) | 1(forward) | 2(backward)
 			 * Rotate:		"R player direction" direction = 0(stop) | 1(left) | 2(right)
 			 * Attack:		"A player weapon" weapon = 0-9
+			 * Chat msg:	"CM*playername*message"
 			 */
 			if(msg.matches("C .+")){
 				//Connect player
@@ -189,6 +192,10 @@ public class SimpGameServer extends JFrame implements Runnable {
 				msg += " " + tank.getXCoord() + " " + tank.getYCoord() + " " + tank.getAngle();
 				gameWindow.applyCommand(msg);
 				sendCommand(msg);
+			}
+			else if(msg.matches("CM\\*.+\\*.+")) {
+				this.sendCommand(msg);
+				this.gameWindow.applyCommand(msg);
 			}
 		}
 	}
